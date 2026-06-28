@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Orders</h1>
+
+<h2>Place New Order</h2>
+<form id="order-form">
+    <input type="number" id="customer_id" placeholder="Customer ID" required>
+
+    <div id="items-container">
+        <div class="item-row">
+            <input type="number" class="product_id" placeholder="Product ID" required>
+            <input type="number" class="quantity" placeholder="Quantity" required>
+        </div>
+    </div>
+
+    <button type="button" id="add-item-btn">+ Add Another Product</button>
+    <button type="submit">Place Order</button>
+</form>
+<p id="order-message"></p>
+
+<h2>All Orders</h2>
+<table id="orders-table"></table>
+
+<script>
+async function loadOrders() {
+    const orders = await (await fetch('/orders/')).json();
+    document.getElementById('orders-table').innerHTML =
+        '<tr><th>Order ID</th><th>Customer ID</th><th>Date</th><th>Status</th><th>Total</th></tr>' +
+        orders.map(o => `
+            <tr>
+                <td>${o.id}</td>
+                <td>${o.customer_id}</td>
+                <td>${o.order_date}</td>
+                <td>${o.status}</td>
+                <td>₹${o.total_amount}</td>
+            </tr>
+        `).join('');
+}
+
+document.getElementById('add-item-btn').addEventListener('click', () => {
+    const container = document.getElementById('items-container');
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+        <input type="number" class="product_id" placeholder="Product ID" required>
+        <input type="number" class="quantity" placeholder="Quantity" required>
+    `;
+    container.appendChild(row);
+});
+
+document.getElementById('order-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const customer_id = parseInt(document.getElementById('customer_id').value);
+    const productIds = document.querySelectorAll('.product_id');
+    const quantities = document.querySelectorAll('.quantity');
+
+    const items = [];
+    for (let i = 0; i < productIds.length; i++) {
+        items.push({
+            product_id: parseInt(productIds[i].value),
+            quantity: parseInt(quantities[i].value)
+        });
+    }
+
+    const response = await fetch('/orders/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customer_id, items })
+    });
+
+    const messageEl = document.getElementById('order-message');
+    const data = await response.json();
+
+    if (response.ok) {
+        messageEl.textContent = `Order placed successfully! Total: ₹${data.total_amount}`;
+        messageEl.style.color = 'green';
+        document.getElementById('order-form').reset();
+        document.getElementById('items-container').innerHTML = `
+            <div class="item-row">
+                <input type="number" class="product_id" placeholder="Product ID" required>
+                <input type="number" class="quantity" placeholder="Quantity" required>
+            </div>
+        `;
+        loadOrders();
+    } else {
+        messageEl.textContent = 'Error: ' + (data.detail || 'Failed to place order');
+        messageEl.style.color = 'red';
+    }
+});
+
+loadOrders();
+</script>
+{% endblock %}

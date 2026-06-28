@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<h2>Top Selling Products</h2>
+<table id="top-products"></table>
+
+<h2>Low Stock Alerts</h2>
+<table id="low-stock"></table>
+
+<h2>Revenue by Category</h2>
+<table id="revenue-category"></table>
+
+<script>
+async function loadDashboard() {
+    const top = await (await fetch('/dashboard/top-products')).json();
+    document.getElementById('top-products').innerHTML =
+        '<tr><th>Product</th><th>Units Sold</th></tr>' +
+        top.map(p => `<tr><td>${p.name}</td><td>${p.total_sold}</td></tr>`).join('');
+
+    const low = await (await fetch('/dashboard/low-stock')).json();
+    document.getElementById('low-stock').innerHTML =
+        '<tr><th>Product</th><th>Stock</th></tr>' +
+        low.map(p => `<tr><td>${p.name}</td><td>${p.stock_quantity}</td></tr>`).join('');
+
+    const rev = await (await fetch('/dashboard/revenue-by-category')).json();
+    document.getElementById('revenue-category').innerHTML =
+        '<tr><th>Category</th><th>Revenue</th></tr>' +
+        rev.map(c => `<tr><td>${c.category}</td><td>₹${c.total_revenue}</td></tr>`).join('');
+}
+loadDashboard();
+</script>
+{% endblock %}

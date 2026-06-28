@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Customers</h1>
+
+<h2>Add New Customer</h2>
+<form id="add-customer-form">
+    <input type="text" id="name" placeholder="Full Name" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="text" id="phone" placeholder="Phone">
+    <button type="submit">Add Customer</button>
+</form>
+<p id="form-message"></p>
+
+<h2>All Customers</h2>
+<table id="customers-table"></table>
+
+<script>
+async function loadCustomers() {
+    const customers = await (await fetch('/customers/')).json();
+    document.getElementById('customers-table').innerHTML =
+        '<tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Action</th></tr>' +
+        customers.map(c => `
+            <tr>
+                <td>${c.id}</td>
+                <td>${c.name}</td>
+                <td>${c.email}</td>
+                <td>${c.phone || ''}</td>
+                <td><button onclick="deleteCustomer(${c.id})">Delete</button></td>
+            </tr>
+        `).join('');
+}
+
+async function deleteCustomer(id) {
+    if (!confirm('Delete this customer?')) return;
+    const response = await fetch(`/customers/${id}`, { method: 'DELETE' });
+    if (response.ok) {
+        loadCustomers();
+    } else {
+        const error = await response.json();
+        alert('Failed to delete: ' + (error.detail || 'Unknown error'));
+    }
+}
+
+document.getElementById('add-customer-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const payload = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value
+    };
+
+    const response = await fetch('/customers/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    const messageEl = document.getElementById('form-message');
+    if (response.ok) {
+        messageEl.textContent = 'Customer added successfully!';
+        messageEl.style.color = 'green';
+        document.getElementById('add-customer-form').reset();
+        loadCustomers();
+    } else {
+        const error = await response.json();
+        messageEl.textContent = 'Error: ' + (error.detail || 'Failed to add customer');
+        messageEl.style.color = 'red';
+    }
+});
+
+loadCustomers();
+</script>
+{% endblock %}

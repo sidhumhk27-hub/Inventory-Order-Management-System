@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Products</h1>
+
+<h2>Add New Product</h2>
+<form id="add-product-form">
+    <input type="text" id="name" placeholder="Product Name" required>
+    <input type="text" id="description" placeholder="Description">
+    <input type="number" id="category_id" placeholder="Category ID" required>
+    <input type="number" id="price" placeholder="Price" step="0.01" required>
+    <input type="number" id="stock_quantity" placeholder="Stock Quantity" required>
+    <button type="submit">Add Product</button>
+</form>
+<p id="form-message"></p>
+
+<h2>All Products</h2>
+<table id="products-table"></table>
+
+<script>
+async function loadProducts() {
+    const products = await (await fetch('/products/')).json();
+    document.getElementById('products-table').innerHTML =
+        '<tr><th>ID</th><th>Name</th><th>Description</th><th>Price</th><th>Stock</th><th>Category ID</th><th>Action</th></tr>' +
+        products.map(p => `
+            <tr>
+                <td>${p.id}</td>
+                <td>${p.name}</td>
+                <td>${p.description || ''}</td>
+                <td>₹${p.price}</td>
+                <td>${p.stock_quantity}</td>
+                <td>${p.category_id}</td>
+                <td><button onclick="deleteProduct(${p.id})">Delete</button></td>
+            </tr>
+        `).join('');
+}
+
+async function deleteProduct(id) {
+    if (!confirm('Delete this product?')) return;
+    await fetch(`/products/${id}`, { method: 'DELETE' });
+    loadProducts();
+}
+
+document.getElementById('add-product-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const payload = {
+        name: document.getElementById('name').value,
+        description: document.getElementById('description').value,
+        category_id: parseInt(document.getElementById('category_id').value),
+        price: parseFloat(document.getElementById('price').value),
+        stock_quantity: parseInt(document.getElementById('stock_quantity').value)
+    };
+
+    const response = await fetch('/products/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    const messageEl = document.getElementById('form-message');
+    if (response.ok) {
+        messageEl.textContent = 'Product added successfully!';
+        messageEl.style.color = 'green';
+        document.getElementById('add-product-form').reset();
+        loadProducts();
+    } else {
+        messageEl.textContent = 'Failed to add product.';
+        messageEl.style.color = 'red';
+    }
+});
+
+loadProducts();
+</script>
+{% endblock %}
