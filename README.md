@@ -3,7 +3,7 @@
 A full-stack inventory and order management system built with FastAPI, MySQL, and vanilla JS. Supports product/customer/category management, order placement with real-time stock validation, and an analytics dashboard powered by raw SQL aggregate queries.
 
 ## Live Demo
-[Add your deployed link here once live]
+(https://inventory-order-management-system-fqpw.onrender.com)
 
 ## Screenshots
 
