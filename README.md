@@ -8,13 +8,16 @@ A full-stack inventory and order management system built with FastAPI, MySQL, an
 ## Screenshots
 
 ### Dashboard
-![Dashboard](screenshots/dashboard.png)
+![Dashboard](screenshots/Dashboard.png)
 
 ### Products Page
-![Products](screenshots/products.png)
+![Products](screenshots/Products.png)
 
 ### Orders Page
-![Orders](screenshots/orders.png)
+![Orders](screenshots/Orders.png)
+
+### Customers Page
+![Customers](screenshots/Customers.png)
 
 ## Features
 
